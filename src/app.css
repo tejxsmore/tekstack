@@ -1,0 +1,117 @@
+@import 'tailwindcss';
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	min-height: 100%;
+	color: #f6fcdf;
+	background-color: #1a1a19;
+	font-family: 'Excon', sans-serif;
+	letter-spacing: 0.5px;
+	box-sizing: border-box;
+	scrollbar-width: none; /* Firefox */
+	-ms-overflow-style: none; /* IE 10+ */
+}
+
+/* Hide scrollbars - WebKit */
+::-webkit-scrollbar {
+	width: 0px;
+	height: 0px;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb:hover {
+	background: transparent;
+}
+
+/* Inherit box-sizing for all elements */
+*,
+*::before,
+*::after {
+	box-sizing: inherit;
+}
+
+/* Variable Font Only */
+@font-face {
+	font-family: 'Excon';
+	src:
+		url('/fonts/excon/WEB/fonts/Excon-Variable.woff2') format('woff2'),
+		url('/fonts/excon/WEB/fonts/Excon-Variable.woff') format('woff'),
+		url('/fonts/excon/WEB/fonts/Excon-Variable.ttf') format('truetype');
+	font-weight: 100 900;
+	font-display: swap;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'Excon-Thin';
+	src:
+		url('/fonts/excon/WEB/fonts/Excon-Thin.woff2') format('woff2'),
+		url('/fonts/excon/WEB/fonts/Excon-Thin.woff') format('woff'),
+		url('/fonts/excon/WEB/fonts/Excon-Thin.ttf') format('truetype');
+	font-weight: 100;
+	font-display: swap;
+	font-style: normal;
+}
+@font-face {
+	font-family: 'Excon-Light';
+	src:
+		url('/fonts/excon/WEB/fonts/Excon-Light.woff2') format('woff2'),
+		url('/fonts/excon/WEB/fonts/Excon-Light.woff') format('woff'),
+		url('/fonts/excon/WEB/fonts/Excon-Light.ttf') format('truetype');
+	font-weight: 300;
+	font-display: swap;
+	font-style: normal;
+}
+@font-face {
+	font-family: 'Excon-Regular';
+	src:
+		url('/fonts/excon/WEB/fonts/Excon-Regular.woff2') format('woff2'),
+		url('/fonts/excon/WEB/fonts/Excon-Regular.woff') format('woff'),
+		url('/fonts/excon/WEB/fonts/Excon-Regular.ttf') format('truetype');
+	font-weight: 400;
+	font-display: swap;
+	font-style: normal;
+}
+@font-face {
+	font-family: 'Excon-Medium';
+	src:
+		url('/fonts/excon/WEB/fonts/Excon-Medium.woff2') format('woff2'),
+		url('/fonts/excon/WEB/fonts/Excon-Medium.woff') format('woff'),
+		url('/fonts/excon/WEB/fonts/Excon-Medium.ttf') format('truetype');
+	font-weight: 500;
+	font-display: swap;
+	font-style: normal;
+}
+@font-face {
+	font-family: 'Excon-Bold';
+	src:
+		url('/fonts/excon/WEB/fonts/Excon-Bold.woff2') format('woff2'),
+		url('/fonts/excon/WEB/fonts/Excon-Bold.woff') format('woff'),
+		url('/fonts/excon/WEB/fonts/Excon-Bold.ttf') format('truetype');
+	font-weight: 700;
+	font-display: swap;
+	font-style: normal;
+}
+@font-face {
+	font-family: 'Excon-Black';
+	src:
+		url('/fonts/excon/WEB/fonts/Excon-Black.woff2') format('woff2'),
+		url('/fonts/excon/WEB/fonts/Excon-Black.woff') format('woff'),
+		url('/fonts/excon/WEB/fonts/Excon-Black.ttf') format('truetype');
+	font-weight: 900;
+	font-display: swap;
+	font-style: normal;
+}
+@font-face {
+	font-family: 'Excon-Variable';
+	src:
+		url('/fonts/excon/WEB/fonts/Excon-Variable.woff2') format('woff2'),
+		url('/fonts/excon/WEB/fonts/Excon-Variable.woff') format('woff'),
+		url('/fonts/excon/WEB/fonts/Excon-Variable.ttf') format('truetype');
+	font-weight: 100 900;
+	font-display: swap;
+	font-style: normal;
+}
