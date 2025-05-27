@@ -71,6 +71,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>{author.name || user.name}</title>
+</svelte:head>
+
 <div class="space-y-6 p-6">
 	{#if !author}
 		<div>

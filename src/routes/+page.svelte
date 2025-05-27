@@ -105,7 +105,7 @@
 </svelte:head>
 
 <div class="space-y-6 p-6">
-	<div class="mx-auto space-y-10 pt-10 pb-30 sm:pt-0 md:max-w-2xl">
+	<div class="mx-auto space-y-10 pt-10 pb-30 md:max-w-2xl md:pt-0">
 		<div class="text-center">
 			<h1 class="text-3xl leading-tight font-extrabold md:text-5xl lg:text-6xl">
 				Cut through the noise, <br />

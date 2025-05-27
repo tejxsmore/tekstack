@@ -37,14 +37,12 @@
 				>Other {tool.category.name} Apps</a
 			>
 		</div>
-		<div
-			class="w-full space-y-6 rounded-[16px] border border-[#393E46] bg-[#212121] p-6 sm:max-w-4xl"
-		>
-			<h3 class="text-xl font-semibold">Description</h3>
+		<div class="w-full space-y-6 rounded-[16px] border border-[#393E46] bg-[#212121] p-6">
+			<h3 class="text-xl font-semibold">TLDR;</h3>
 			<p>{tool.description}</p>
 		</div>
 
-		<div class="pt-3">
+		<div class="pt-6">
 			<MarkdownParser content={tool.features} />
 		</div>
 	</div>

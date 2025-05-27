@@ -193,12 +193,12 @@ export const actions: Actions = {
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					query: `
-					query GetAuthorByEmail($email: String!) {
-						author (where: { email: $email }) {
-							id
-						}
+				query GetAuthorByEmail($email: String!) {
+					author (where: { email: $email }) {
+						id
 					}
-				`,
+				}
+			`,
 					variables: { email: authorEmail }
 				})
 			});
@@ -244,15 +244,15 @@ export const actions: Actions = {
 				},
 				body: JSON.stringify({
 					query: `
-					query GetPostBySlug($slug: String!) {
-						post(where: { slug: $slug }) {
-							id
-							tag {
-								slug
-							}
+				query GetPostBySlug($slug: String!) {
+					post(where: { slug: $slug }) {
+						id
+						tag {
+							slug
 						}
 					}
-				`,
+				}
+			`,
 					variables: { slug: oldSlug }
 				})
 			});
@@ -293,11 +293,11 @@ export const actions: Actions = {
 			const existingTagSlugs = post.tag?.map((tag: { slug: string }) => tag.slug) || [];
 
 			// 3. Resolve and/or create new tags
-			let resolvedTagSlugs: string[] = [];
+			let resolvedTagIds: string[] = [];
 			const inputTagSlugs = Array.isArray(tags) ? tags.map(slugify) : [];
 
 			if (inputTagSlugs.length > 0) {
-				// Fetch existing tags
+				// Fetch existing tags (both published AND draft) with IDs
 				const tagRes = await fetch(env.HYGRAPH_API, {
 					method: 'POST',
 					headers: {
@@ -306,13 +306,14 @@ export const actions: Actions = {
 					},
 					body: JSON.stringify({
 						query: `
-						query GetTagsByNames($names: [String!]) {
-							tags(where: { name_in: $names }) {
-								slug
-								name
-							}
+					query GetTagsByNames($names: [String!]) {
+						tags(where: { name_in: $names }, stage: DRAFT) {
+							id
+							slug
+							name
 						}
-					`,
+					}
+				`,
 						variables: { names: tags }
 					})
 				});
@@ -340,15 +341,18 @@ export const actions: Actions = {
 				}
 
 				const existingTags = tagData?.data?.tags ?? [];
-				resolvedTagSlugs = existingTags.map((tag: { slug: string }) => tag.slug);
+				const existingTagMap = new Map();
+				existingTags.forEach((tag: { id: string; slug: string; name: string }) => {
+					existingTagMap.set(tag.slug, tag.id);
+				});
 
 				// Create new tags if needed
-				const newTags = tags.filter((tag: string) => !resolvedTagSlugs.includes(slugify(tag)));
+				const newTags = tags.filter((tag: string) => !existingTagMap.has(slugify(tag)));
 
 				for (const name of newTags) {
 					const slug = slugify(name);
 
-					// Check if tag already exists by slug (race condition protection)
+					// Check if tag already exists by slug (race condition protection) - check DRAFT stage
 					const checkExistingRes = await fetch(env.HYGRAPH_API, {
 						method: 'POST',
 						headers: {
@@ -357,21 +361,22 @@ export const actions: Actions = {
 						},
 						body: JSON.stringify({
 							query: `
-							query CheckTagExists($slug: String!) {
-								tag(where: { slug: $slug }) {
-									slug
-								}
+						query CheckTagExists($slug: String!) {
+							tag(where: { slug: $slug }, stage: DRAFT) {
+								id
+								slug
 							}
-						`,
+						}
+					`,
 							variables: { slug }
 						})
 					});
 
 					if (checkExistingRes.ok) {
 						const checkData = await checkExistingRes.json();
-						if (checkData?.data?.tag?.slug) {
-							// Tag already exists, add to resolved slugs
-							resolvedTagSlugs.push(slug);
+						if (checkData?.data?.tag?.id) {
+							// Tag already exists (even if draft), add to existing map
+							existingTagMap.set(slug, checkData.data.tag.id);
 							continue;
 						}
 					}
@@ -385,13 +390,14 @@ export const actions: Actions = {
 						},
 						body: JSON.stringify({
 							query: `
-							mutation CreateTag($name: String!, $slug: String!) {
-								createTag(data: { name: $name, slug: $slug }) {
-									slug
-									name
-								}
+						mutation CreateTag($name: String!, $slug: String!) {
+							createTag(data: { name: $name, slug: $slug }) {
+								id
+								slug
+								name
 							}
-						`,
+						}
+					`,
 							variables: { name: name.trim(), slug }
 						})
 					});
@@ -407,20 +413,21 @@ export const actions: Actions = {
 							},
 							body: JSON.stringify({
 								query: `
-								query GetTagBySlug($slug: String!) {
-									tag(where: { slug: $slug }) {
-										slug
-									}
+							query GetTagBySlug($slug: String!) {
+								tag(where: { slug: $slug }, stage: DRAFT) {
+									id
+									slug
 								}
-							`,
+							}
+						`,
 								variables: { slug }
 							})
 						});
 
 						if (retryFetch.ok) {
 							const retryData = await retryFetch.json();
-							if (retryData?.data?.tag?.slug) {
-								resolvedTagSlugs.push(slug);
+							if (retryData?.data?.tag?.id) {
+								existingTagMap.set(slug, retryData.data.tag.id);
 								continue;
 							}
 						}
@@ -444,7 +451,7 @@ export const actions: Actions = {
 						);
 
 						if (duplicateError) {
-							// Tag exists, try to fetch it
+							// Tag exists, try to fetch it from DRAFT stage
 							const fetchExistingRes = await fetch(env.HYGRAPH_API, {
 								method: 'POST',
 								headers: {
@@ -453,20 +460,21 @@ export const actions: Actions = {
 								},
 								body: JSON.stringify({
 									query: `
-									query GetTagBySlug($slug: String!) {
-										tag(where: { slug: $slug }) {
-											slug
-										}
+								query GetTagBySlug($slug: String!) {
+									tag(where: { slug: $slug }, stage: DRAFT) {
+										id
+										slug
 									}
-								`,
+								}
+							`,
 									variables: { slug }
 								})
 							});
 
 							if (fetchExistingRes.ok) {
 								const existingData = await fetchExistingRes.json();
-								if (existingData?.data?.tag?.slug) {
-									resolvedTagSlugs.push(slug);
+								if (existingData?.data?.tag?.id) {
+									existingTagMap.set(slug, existingData.data.tag.id);
 									continue;
 								}
 							}
@@ -477,64 +485,82 @@ export const actions: Actions = {
 						continue;
 					}
 
-					const createdSlug = createData?.data?.createTag?.slug;
+					const createdTag = createData?.data?.createTag;
 
-					if (createdSlug) {
-						// Publish the tag
-						const publishTagRes = await fetch(env.HYGRAPH_API, {
-							method: 'POST',
-							headers: {
-								'Content-Type': 'application/json',
-								Authorization: `Bearer ${env.HYGRAPH_MUTATION_TOKEN}`
-							},
-							body: JSON.stringify({
-								query: `
-								mutation PublishTag($slug: String!) {
-									publishTag(where: { slug: $slug }) {
-										slug
-									}
-								}
-							`,
-								variables: { slug: createdSlug }
-							})
-						});
-
-						if (!publishTagRes.ok) {
-							console.error('Failed to publish tag:', createdSlug);
-							// Continue without failing - tag is created but not published
-						} else {
-							const publishData = await publishTagRes.json();
-							if (publishData.errors) {
-								console.error('Publish tag errors:', publishData.errors);
-								// Continue without failing - tag is created but not published
-							}
-						}
+					if (createdTag?.id) {
+						existingTagMap.set(createdTag.slug, createdTag.id);
 
 						// Add a small delay to ensure the tag is ready
-						await new Promise((resolve) => setTimeout(resolve, 300));
-						resolvedTagSlugs.push(createdSlug);
+						await new Promise((resolve) => setTimeout(resolve, 100));
 					} else {
-						console.error('Failed to create tag - no slug returned:', name);
+						console.error('Failed to create tag - no ID returned:', name);
 						// Continue with other tags instead of failing entirely
 						continue;
 					}
 				}
+
+				// Get all tag IDs for the resolved tags
+				resolvedTagIds = inputTagSlugs
+					.map((slug) => existingTagMap.get(slug))
+					.filter((id) => id !== undefined);
 			}
 
-			// 4. Prepare tag connections
-			const tagsToConnect = resolvedTagSlugs.filter((slug) => !existingTagSlugs.includes(slug));
-			const tagsToDisconnect = existingTagSlugs.filter(
-				(slug: string) => !resolvedTagSlugs.includes(slug)
-			);
+			// 4. Get current tag IDs from the post
+			const currentTagIds =
+				post.tag?.map((tag: { slug: string }) => {
+					// We need to get the IDs of current tags, but we only have slugs
+					// We'll handle this in the connection logic
+					return tag.slug;
+				}) || [];
 
-			const tagConnections = `
-			tag: {
-				${tagsToConnect.length ? `connect: [${tagsToConnect.map((slug) => `{ where: { slug: "${slug}" } }`).join(', ')}],` : ''}
-				${tagsToDisconnect.length ? `disconnect: [${tagsToDisconnect.map((slug: string) => `{ slug: "${slug}" }`).join(', ')}],` : ''}
-			},
-		`;
+			// 5. Ensure all resolved tags are published before connecting
+			const publishPromises = resolvedTagIds.map(async (tagId) => {
+				try {
+					const publishRes = await fetch(env.HYGRAPH_API, {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							Authorization: `Bearer ${env.HYGRAPH_MUTATION_TOKEN}`
+						},
+						body: JSON.stringify({
+							query: `
+						mutation PublishTag($id: ID!) {
+							publishTag(where: { id: $id }) {
+								id
+								slug
+							}
+						}
+					`,
+							variables: { id: tagId }
+						})
+					});
 
-			// 5. Update the post
+					if (!publishRes.ok) {
+						console.error('Failed to publish tag before connection:', tagId);
+					} else {
+						const publishData = await publishRes.json();
+						if (publishData.errors) {
+							console.error('Publish tag errors before connection:', publishData.errors);
+						}
+					}
+				} catch (error) {
+					console.error('Error publishing tag before connection:', tagId, error);
+				}
+			});
+
+			// Wait for all tags to be published
+			await Promise.all(publishPromises);
+
+			// Add a delay to ensure all tags are fully published
+			await new Promise((resolve) => setTimeout(resolve, 500));
+
+			// 6. Prepare tag connections using IDs
+			const tagConnections =
+				resolvedTagIds.length > 0
+					? `tag: { set: [${resolvedTagIds.map((id) => `{ id: "${id}" }`).join(', ')}] },`
+					: `tag: { set: [] },`;
+
+			// 7. Update the post
 			const escapedTitle = title.replace(/"/g, '\\"');
 			const escapedContent = content
 				.replace(/\\/g, '\\\\')
@@ -542,26 +568,26 @@ export const actions: Actions = {
 				.replace(/\n/g, '\\n');
 
 			const mutation = `
-			mutation UpdatePost {
-				updatePost(
-					where: { id: "${postId}" }
-					data: {
-						title: "${escapedTitle}",
-						slug: "${newSlug}",
-						content: "${escapedContent}",
-						${tagConnections}
-						author: { connect: { id: "${authorId}" } }
-					}
-				) {
-					id
-					slug
+		mutation UpdatePost {
+			updatePost(
+				where: { id: "${postId}" }
+				data: {
+					title: "${escapedTitle}",
+					slug: "${newSlug}",
+					content: "${escapedContent}",
+					${tagConnections}
+					author: { connect: { id: "${authorId}" } }
 				}
-
-				publishPost(where: { id: "${postId}" }) {
-					id
-				}
+			) {
+				id
+				slug
 			}
-		`;
+
+			publishPost(where: { id: "${postId}" }) {
+				id
+			}
+		}
+	`;
 
 			const updateRes = await fetch(env.HYGRAPH_API, {
 				method: 'POST',

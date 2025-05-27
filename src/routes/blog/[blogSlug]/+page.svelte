@@ -60,7 +60,7 @@
 				{/each}
 			</div>
 
-			<div class="">
+			<div class="pt-6">
 				<MarkdownParser content={post.content} />
 			</div>
 		</div>

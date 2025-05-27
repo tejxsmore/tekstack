@@ -1,7 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import SignOutButton from './auth/SignOutButton.svelte';
-	import { Menu, UserRound } from '@lucide/svelte';
+	import { UserRound } from '@lucide/svelte';
 	import { userStore } from '$lib/stores/user';
 
 	let modal = $state(false);
@@ -47,8 +47,17 @@
 	}
 
 	function toggleMenu() {
+		if (modal) {
+			modal = false; // Close profile modal when opening menu
+		}
 		menu = !menu;
-		console.log('Menu toggled:', menu); // Debug log
+	}
+
+	function toggleModal() {
+		if (menu) {
+			menu = false; // Close menu when opening profile modal
+		}
+		modal = !modal;
 	}
 
 	onMount(() => {
@@ -65,15 +74,15 @@
 	<div class="flex items-center justify-between p-6">
 		<div class="flex items-end gap-3 sm:gap-12">
 			<a href="/" class="text-4xl font-bold">TEKSTACK</a>
-			<a href="/blog" class="hidden text-2xl font-semibold sm:block">Blog</a>
+			<a href="/blog" class="hidden text-2xl font-semibold md:block">Blog</a>
 		</div>
 		<div class="">
 			{#if $userStore}
-				<div class="flex gap-3 sm:gap-0">
+				<div class="flex gap-3">
 					<div class="relative">
 						<button
 							bind:this={userButton}
-							onclick={() => (modal = !modal)}
+							onclick={toggleModal}
 							class="cursor-pointer rounded-[16px] border border-[#393E46] bg-[#212121] p-3 transition-colors hover:bg-[#272829] focus:outline-none"
 						>
 							<UserRound />
@@ -101,30 +110,42 @@
 							</div>
 						{/if}
 					</div>
-					<div>
+					<div class="flex items-center">
 						<button
-							onclick={() => (menu = !menu)}
-							class="block cursor-pointer rounded-[16px] border border-[#393E46] bg-[#212121] p-3 transition-colors hover:bg-[#272829] focus:outline-none sm:hidden"
+							bind:this={menuButton}
+							onclick={toggleMenu}
+							class="hamburger-button cursor-pointer rounded-[16px] border border-[#393E46] bg-[#212121] px-[12px] py-[15px] transition-colors hover:bg-[#272829] focus:outline-none"
+							class:active={menu}
 							aria-label="Toggle mobile menu"
 						>
-							<Menu />
+							<div class="hamburger">
+								<span class="hamburger-line"></span>
+								<span class="hamburger-line"></span>
+								<span class="hamburger-line"></span>
+							</div>
 						</button>
 					</div>
 				</div>
 			{:else}
-				<div class="flex gap-3 sm:gap-0">
+				<div class="flex gap-3">
 					<a
 						href="/sign-in"
-						class="cursor-pointer rounded-[16px] border border-[#AF3E3E] bg-[#D84040] p-3 px-6 font-medium text-[#ECFAE5] delay-100 hover:bg-[#BF3131]"
+						class="hidden cursor-pointer rounded-[16px] border border-[#AF3E3E] bg-[#D84040] p-3 px-6 font-medium text-[#ECFAE5] delay-100 hover:bg-[#BF3131] sm:block"
 					>
 						Sign In
 					</a>
 					<button
-						onclick={() => (menu = !menu)}
-						class="block cursor-pointer rounded-[16px] border border-[#393E46] bg-[#212121] p-3 transition-colors hover:bg-[#272829] focus:outline-none sm:hidden"
+						bind:this={menuButton}
+						onclick={toggleMenu}
+						class="hamburger-button cursor-pointer rounded-[16px] border border-[#393E46] bg-[#212121] p-3 transition-colors hover:bg-[#272829] focus:outline-none sm:hidden"
+						class:active={menu}
 						aria-label="Toggle mobile menu"
 					>
-						<Menu />
+						<div class="hamburger">
+							<span class="hamburger-line"></span>
+							<span class="hamburger-line"></span>
+							<span class="hamburger-line"></span>
+						</div>
 					</button>
 				</div>
 			{/if}
@@ -135,41 +156,47 @@
 	{#if menu}
 		<div
 			bind:this={mobileMenuElement}
-			class="animate-in slide-in-from-top-4 absolute top-full right-0 left-0 z-20 z-30 bg-[#212121] duration-300 ease-out sm:hidden"
+			class="animate-in slide-in-from-top-4 absolute top-full right-0 left-0 z-20 z-30 bg-[#212121] duration-300 ease-out"
 		>
 			<div class="space-y-3 p-3">
 				<a
 					href="/blog"
-					class="block rounded-[12px] p-3 text-lg font-medium transition-colors hover:border-[#393E46] hover:bg-[#272829]"
-					onclick={() => (menu = false)}
-				>
-					Best Software
-				</a>
-				<a
-					href="/blog"
-					class="block rounded-[12px] p-3 text-lg font-medium transition-colors hover:border-[#393E46] hover:bg-[#272829]"
+					class="block rounded-[12px] p-3 text-lg font-medium"
 					onclick={() => (menu = false)}
 				>
 					Blogs
 				</a>
+				<a
+					href="/tool/best"
+					class="block rounded-[12px] p-3 text-lg font-medium transition-colors hover:border-[#393E46]"
+					onclick={() => (menu = false)}
+				>
+					Best tools
+				</a>
+				<a
+					href="/newsletter"
+					class="block rounded-[12px] p-3 text-lg font-medium transition-colors hover:border-[#393E46]"
+					onclick={() => (menu = false)}
+				>
+					Newsletter
+				</a>
 				{#if $userStore}
 					<a
 						href="/blog/write"
-						class="block rounded-[12px] p-3 text-lg font-medium transition-colors hover:border-[#393E46] hover:bg-[#272829]"
+						class="block rounded-[12px] p-3 text-lg font-medium"
 						onclick={() => (menu = false)}
 					>
-						Write a Blog
+						Write blog
 					</a>
 					<a
 						href="/tool/submit"
-						class="block rounded-[12px] p-3 text-lg font-medium transition-colors hover:border-[#393E46] hover:bg-[#272829]"
+						class="block rounded-[12px] p-3 text-lg font-medium"
 						onclick={() => (menu = false)}
 					>
-						Submit a Tool
+						Submit tool
 					</a>
 				{:else}
-					<div class="border-t border-[#393E46] pt-2">
-						<p class="mb-3 text-sm text-gray-400">Sign in to access more features</p>
+					<div class="p-3">
 						<a
 							href="/sign-in"
 							class="block rounded-[12px] border border-[#AF3E3E] bg-[#D84040] px-4 py-3 text-center font-medium text-[#ECFAE5] transition-colors hover:bg-[#BF3131]"
@@ -185,6 +212,38 @@
 </div>
 
 <style>
+	/* Hamburger Menu Styles */
+	.hamburger {
+		width: 24px;
+		height: 18px;
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+	}
+
+	.hamburger-line {
+		width: 100%;
+		height: 2px;
+		background-color: currentColor;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		transform-origin: center;
+	}
+
+	.hamburger-button.active .hamburger-line:nth-child(1) {
+		transform: translateY(8px) rotate(45deg);
+	}
+
+	.hamburger-button.active .hamburger-line:nth-child(2) {
+		opacity: 0;
+		transform: scaleX(0);
+	}
+
+	.hamburger-button.active .hamburger-line:nth-child(3) {
+		transform: translateY(-8px) rotate(-45deg);
+	}
+
+	/* Animation Keyframes */
 	@keyframes slide-in-from-top-2 {
 		from {
 			opacity: 0;
