@@ -3,6 +3,10 @@
 	const { post } = data;
 
 	import MarkdownParser from '$lib/components/MarkdownParser.svelte';
+	import Like from '$lib/components/action/Like.svelte';
+	import Comment from '$lib/components/action/Comment.svelte';
+	import Save from '$lib/components/action/Save.svelte';
+	import Share from '$lib/components/action/Share.svelte';
 
 	function formatDate(isoDate: string): string {
 		try {
@@ -63,6 +67,15 @@
 			<div class="pt-6">
 				<MarkdownParser content={post.content} />
 			</div>
+		</div>
+
+		<div
+			class="fixed bottom-10 mx-auto flex gap-1 rounded-full border border-[#393E46] bg-[#212121] p-1"
+		>
+			<Like slug={post.slug} title={post.title} />
+			<Comment slug={post.slug} title={post.title} />
+			<Save slug={post.slug} title={post.title} />
+			<Share slug={post.slug} title={post.title} />
 		</div>
 	{:else}
 		<p>No post found</p>

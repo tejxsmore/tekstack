@@ -156,7 +156,7 @@
 	{#if menu}
 		<div
 			bind:this={mobileMenuElement}
-			class="animate-in slide-in-from-top-4 absolute top-full right-0 left-0 z-20 z-30 bg-[#212121] duration-300 ease-out"
+			class="animate-in slide-in-from-top-4 absolute top-full right-0 left-0 z-30 bg-[#212121] duration-300 ease-out"
 		>
 			<div class="space-y-3 p-3">
 				<a
