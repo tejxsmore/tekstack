@@ -1,11 +1,12 @@
 <script lang="ts">
 	import { signOut } from '$lib/auth-client';
+	import { userStore } from '$lib/stores/user';
 
 	async function handleSignOut() {
 		await signOut({
 			fetchOptions: {
 				onSuccess: () => {
-					window.location.reload();
+					$userStore = null;
 				}
 			}
 		});
@@ -13,8 +14,8 @@
 </script>
 
 <button
-	on:click={handleSignOut}
-	class="block w-full cursor-pointer rounded-[12px] bg-[#D84040] p-3 text-[#ECFAE5] transition-colors hover:bg-[#BF3131]"
+	onclick={handleSignOut}
+	class="block w-full cursor-pointer rounded-[12px] border border-[#AF3E3E] bg-[#D84040] p-3 font-medium text-[#ECFAE5] delay-100 hover:bg-[#BF3131]"
 >
 	Sign Out
 </button>

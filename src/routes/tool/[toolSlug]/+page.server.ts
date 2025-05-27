@@ -12,6 +12,7 @@ interface Tool {
 	websiteUrl: string;
 	category: {
 		name: string;
+		slug: string;
 	};
 }
 
@@ -35,6 +36,7 @@ export const load: PageServerLoad = async ({ fetch, params }) => {
                         websiteUrl
                         category{
                             name
+							slug
                         }
                     }
                 }

@@ -10,13 +10,13 @@
 				<img
 					src={tool.logo.url}
 					alt={`Logo of ${tool.name}`}
-					class="h-full w-full rounded-[6px] object-contain"
+					class="h-full w-full rounded-[6px] object-contain transition hover:scale-105"
 				/>
 			</div>
 			<h2 class="text-lg font-semibold">{tool.name}</h2>
 		</a>
 	</div>
-	<p class="flex-grow">{tool.description.slice(0, 80)}</p>
+	<p class="flex-grow pb-1">{tool.description.slice(0, 80)}</p>
 	<a
 		href={tool.websiteUrl}
 		target="_blank"

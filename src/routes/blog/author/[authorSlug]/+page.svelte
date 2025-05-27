@@ -1,9 +1,13 @@
-<script>
+<script lang="ts">
 	const { data } = $props();
 	const { author } = data;
 
 	import BlogCard from '$lib/components/card/BlogCard.svelte';
 </script>
+
+<svelte:head>
+	<title>{author?.name}</title>
+</svelte:head>
 
 <div class="space-y-6 p-6">
 	<h1>{author.name}</h1>

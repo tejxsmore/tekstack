@@ -81,7 +81,7 @@
 			<a href="/sign-in" class="font-semibold hover:text-[#A94A4A] hover:underline">Sign In</a>
 		</div>
 		{#if form?.errorMessage}
-			<p class="text-red-600">{form.errorMessage}</p>
+			<p class="text-[#D84040]">{form.errorMessage}</p>
 		{/if}
 	</div>
 </div>

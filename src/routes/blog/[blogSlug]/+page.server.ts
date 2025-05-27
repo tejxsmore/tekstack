@@ -13,6 +13,7 @@ interface Post {
 		slug: string;
 	};
 	content: string;
+	createdAt: string;
 }
 
 export const load: PageServerLoad = async ({ fetch, params }) => {
@@ -36,6 +37,7 @@ export const load: PageServerLoad = async ({ fetch, params }) => {
                             slug
                         }
                         content
+						createdAt
                     }
                 }
             `,

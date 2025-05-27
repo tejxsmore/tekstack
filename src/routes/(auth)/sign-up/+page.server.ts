@@ -1,7 +1,7 @@
 import type { Actions } from './$types';
 import { auth } from '$lib/auth';
 import { APIError } from 'better-auth/api';
-import { redirect } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
 
 export const actions = {
 	default: async ({ request, cookies }) => {
@@ -24,6 +24,15 @@ export const actions = {
 				},
 				asResponse: true
 			});
+
+			switch (response.statusText) {
+				case 'UNPROCESSABLE_ENTITY':
+					return fail(422, {
+						errorMessage: 'User already exists. Use Sign In or Social Sign In'
+					});
+				case 'BAD_REQUEST':
+					return fail(400, { errorMessage: 'Invalid email format or request.' });
+			}
 
 			// Handle cookies from the response
 			const setCookieHeaders =
@@ -76,21 +85,14 @@ export const actions = {
 				}
 			}
 		} catch (error) {
-			if (error instanceof APIError) {
-				console.warn('API error status:', error.status);
+			console.error('Authentication error:', error);
 
-				switch (error.status) {
-					case 'UNPROCESSABLE_ENTITY':
-						return { status: 422, errorMessage: 'User already exists. Sign In instead' };
-					case 'BAD_REQUEST':
-						return { status: 400, errorMessage: 'Invalid email address.' };
-					default:
-						return { status: 500, errorMessage: 'Something went wrong. Try again later.' };
-				}
+			if (error instanceof APIError) {
+				return fail(400, { errorMessage: error.message });
 			}
 
-			console.error('Unexpected error during signup:', error);
-			return { status: 500, errorMessage: 'Internal server error.' };
+			const message = error instanceof Error ? error.message : String(error);
+			return fail(500, { errorMessage: `Authentication failed: ${message}` });
 		}
 
 		redirect(302, '/');

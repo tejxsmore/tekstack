@@ -1,7 +1,8 @@
 import type { Actions } from './$types';
 import { auth } from '$lib/auth';
 import { APIError } from 'better-auth/api';
-import { redirect } from '@sveltejs/kit';
+import { fail, redirect } from '@sveltejs/kit';
+import { buildErrorMessage } from 'vite';
 
 export const actions = {
 	default: async ({ request, cookies }) => {
@@ -18,6 +19,13 @@ export const actions = {
 				},
 				asResponse: true
 			});
+
+			switch (response.statusText) {
+				case 'UNAUTHORIZED':
+					return fail(401, { errorMessage: 'User not found or wrong credentials.' });
+				case 'BAD_REQUEST':
+					return fail(400, { errorMessage: 'Invalid email format or request.' });
+			}
 
 			// Better cookie parsing - handles multiple Set-Cookie headers
 			const setCookieHeaders =
@@ -72,21 +80,14 @@ export const actions = {
 				}
 			}
 		} catch (error) {
-			if (error instanceof APIError) {
-				console.warn('API error status:', error.status);
+			console.error('Authentication error:', error);
 
-				switch (error.status) {
-					case 'UNAUTHORIZED':
-						return { status: 401, errorMessage: 'User not found or wrong credentials.' };
-					case 'BAD_REQUEST':
-						return { status: 400, errorMessage: 'Invalid email format or request.' };
-					default:
-						return { status: 500, errorMessage: 'Something went wrong. Try again later.' };
-				}
+			if (error instanceof APIError) {
+				return fail(400, { errorMessage: error.message });
 			}
 
-			console.error('Unexpected error during signin:', error);
-			return { status: 500, errorMessage: 'Internal server error.' };
+			const message = error instanceof Error ? error.message : String(error);
+			return fail(500, { errorMessage: `Authentication failed: ${message}` });
 		}
 
 		redirect(302, '/');

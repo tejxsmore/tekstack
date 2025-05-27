@@ -6,7 +6,7 @@
 		children,
 		provider,
 		type,
-		callbackURL = '/user/profile'
+		callbackURL = '/'
 	}: {
 		children: Snippet;
 		provider: 'google' | 'github';
@@ -18,7 +18,7 @@
 </script>
 
 <button
-	class="flex cursor-pointer items-center justify-center gap-3 rounded-[12px] border border-[#393E46] bg-[#191919] p-1.5 text-sm delay-100 hover:bg-[#161616]"
+	class="flex cursor-pointer items-center justify-center gap-3 rounded-[12px] border border-[#393E46] bg-[#212121] p-1.5 text-sm delay-100 hover:bg-[#272829]"
 	onclick={async () => {
 		await signIn.social({
 			provider,
@@ -29,5 +29,3 @@
 	<img src={providerLogo} alt={`${provider} logo`} class="h-4 w-4" />
 	{@render children()}
 </button>
-
-<!-- bg-[#322C2B] -->

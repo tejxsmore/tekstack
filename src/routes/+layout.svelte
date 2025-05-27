@@ -1,11 +1,13 @@
 <!-- layout.svelte -->
 <script lang="ts">
 	import '../app.css';
-	import Navbar from '$lib/components/Navbar.svelte';
-
 	const { children, data } = $props();
-	const { session } = data;
+
+	import Navbar from '$lib/components/Navbar.svelte';
+	import { userStore } from '$lib/stores/user';
+
+	$userStore = data.user!;
 </script>
 
-<Navbar {session} />
+<Navbar />
 {@render children()}

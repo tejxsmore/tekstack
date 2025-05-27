@@ -189,18 +189,18 @@ export const actions = {
 			: [];
 
 		try {
-			// 1. Get author id
+			// 1. Get author id - this is critical, fail if not found
 			const authorQuery = await fetch(env.HYGRAPH_API, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					query: `
-						query GetAuthorByEmail($email: String!) {
-							author (where: { email: $email }) {
-								id
-							}
+					query GetAuthorByEmail($email: String!) {
+						author (where: { email: $email }) {
+							id
 						}
-					`,
+					}
+				`,
 					variables: { email }
 				})
 			});
@@ -237,16 +237,17 @@ export const actions = {
 				});
 			}
 
-			// 2. Handle tags
+			// 2. Handle tags - make this non-blocking for post creation
 			let resolvedTagSlugs: string[] = [];
 
 			if (tags.length > 0) {
-				// 2.1 Get existing tags
-				const tagRes = await fetch(env.HYGRAPH_API, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						query: `
+				try {
+					// 2.1 Get existing tags
+					const tagRes = await fetch(env.HYGRAPH_API, {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							query: `
 							query GetTagsByNames($names: [String!]) {
 								tags(where: { name_in: $names }) {
 									slug
@@ -254,85 +255,78 @@ export const actions = {
 								}
 							}
 						`,
-						variables: { names: tags }
-					})
-				});
-
-				if (!tagRes.ok) {
-					console.error('Failed to fetch tags:', tagRes.statusText);
-					return fail(500, {
-						error: 'Failed to process tags',
-						title,
-						content,
-						tags: rawTags
-					});
-				}
-
-				const tagData = await tagRes.json();
-
-				if (tagData.errors) {
-					console.error('Tag query errors:', tagData.errors);
-					return fail(500, {
-						error: 'Failed to process tags',
-						title,
-						content,
-						tags: rawTags
-					});
-				}
-
-				const existingTags = tagData?.data?.tags ?? [];
-				resolvedTagSlugs = existingTags.map((tag: { slug: string }) => tag.slug);
-
-				const newTags = tags.filter(
-					(tag) =>
-						!existingTags.some((existing: any) => existing.name.toLowerCase() === tag.toLowerCase())
-				);
-
-				// 2.2 Create and publish new tags
-				for (const name of newTags) {
-					const tagSlug = slugify(name);
-
-					const response = await fetch(env.HYGRAPH_API, {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-							Authorization: `Bearer ${env.HYGRAPH_MUTATION_TOKEN}`
-						},
-						body: JSON.stringify({
-							query: `
-								mutation CreateAndPublishTag($name: String!, $slug: String!) {
-									createTag(data: { name: $name, slug: $slug }) {
-										slug
-									}
-									publishTag(where: { slug: $slug }) {
-										slug
-									}
-								}
-							`,
-							variables: { name, slug: tagSlug }
+							variables: { names: tags }
 						})
 					});
 
-					if (!response.ok) {
-						console.error(`Failed to create tag "${name}":`, response.statusText);
-						continue; // Continue with other tags instead of failing completely
-					}
+					if (tagRes.ok) {
+						const tagData = await tagRes.json();
 
-					const json = await response.json();
+						if (!tagData.errors) {
+							const existingTags = tagData?.data?.tags ?? [];
+							resolvedTagSlugs = existingTags.map((tag: { slug: string }) => tag.slug);
 
-					if (json.errors) {
-						console.error(`Failed to create tag "${name}":`, json.errors);
-						continue;
-					}
+							const newTags = tags.filter(
+								(tag) =>
+									!existingTags.some(
+										(existing: any) => existing.name.toLowerCase() === tag.toLowerCase()
+									)
+							);
 
-					const publishedSlug = json?.data?.publishTag?.slug;
-					if (publishedSlug) {
-						resolvedTagSlugs.push(publishedSlug);
+							// 2.2 Create and publish new tags - but don't fail the whole operation
+							const tagCreationPromises = newTags.map(async (name) => {
+								const tagSlug = slugify(name);
+
+								try {
+									const response = await fetch(env.HYGRAPH_API, {
+										method: 'POST',
+										headers: {
+											'Content-Type': 'application/json',
+											Authorization: `Bearer ${env.HYGRAPH_MUTATION_TOKEN}`
+										},
+										body: JSON.stringify({
+											query: `
+											mutation CreateAndPublishTag($name: String!, $slug: String!) {
+												createTag(data: { name: $name, slug: $slug }) {
+													slug
+												}
+												publishTag(where: { slug: $slug }) {
+													slug
+												}
+											}
+										`,
+											variables: { name, slug: tagSlug }
+										})
+									});
+
+									if (response.ok) {
+										const json = await response.json();
+										if (!json.errors && json?.data?.publishTag?.slug) {
+											return json.data.publishTag.slug;
+										}
+									}
+								} catch (error) {
+									console.warn(`Failed to create tag "${name}":`, error);
+								}
+								return null;
+							});
+
+							// Wait for all tag creations but don't fail if some don't work
+							const createdTagSlugs = await Promise.allSettled(tagCreationPromises);
+							createdTagSlugs.forEach((result) => {
+								if (result.status === 'fulfilled' && result.value) {
+									resolvedTagSlugs.push(result.value);
+								}
+							});
+						}
 					}
+				} catch (error) {
+					console.warn('Tag processing failed, continuing with post creation:', error);
+					// Don't fail here - just proceed without tags
 				}
 			}
 
-			// 3. Create and publish the post in one mutation
+			// 3. Create and publish the post directly - this is the critical operation
 			const tagConnections = resolvedTagSlugs.map((slug) => ({ slug }));
 
 			const createAndPublishPostRes = await fetch(env.HYGRAPH_API, {
@@ -343,31 +337,30 @@ export const actions = {
 				},
 				body: JSON.stringify({
 					query: `
-						mutation CreateAndPublishPost(
-							$title: String!, 
-							$content: String!, 
-							$slug: String!, 
-							$tag: [TagWhereUniqueInput!], 
-							$authorId: ID!
-						) {
-							createPost(data: {
-								title: $title,
-								content: $content,
-								slug: $slug,
-								date: "${new Date().toISOString()}",
-								author: { connect: { id: $authorId } },
-								tag: { connect: $tag }
-							}) {
-								id
-								slug
-							}
-							publishPost(where: { slug: $slug }) {
-								id
-								slug
-								publishedAt
-							}
+					mutation CreateAndPublishPost(
+						$title: String!, 
+						$content: String!, 
+						$slug: String!, 
+						$tag: [TagWhereUniqueInput!], 
+						$authorId: ID!
+					) {
+						createPost(data: {
+							title: $title,
+							content: $content,
+							slug: $slug,
+							author: { connect: { id: $authorId } },
+							tag: { connect: $tag }
+						}) {
+							id
+							slug
 						}
-					`,
+						publishPost(where: { slug: $slug }) {
+							id
+							slug
+							publishedAt
+						}
+					}
+				`,
 					variables: {
 						title,
 						slug,

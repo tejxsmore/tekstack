@@ -55,12 +55,27 @@
 	}
 
 	function processCodeBlocks(html: string): string {
-		return html.replace(/```([a-zA-Z0-9]*)\n([\s\S]*?)```/g, (_, language, code) => {
+		// Remove <p>...</p> that fully wraps a code block
+		html = html.replace(/```([a-zA-Z0-9]*)\n([\s\S]*?)```/g, (_, language, code) => {
 			const languageClass = language ? ` language-${language}` : '';
 			const formattedCode = code.replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-			return `<pre class="bg-[#191919] p-4 rounded-lg my-6 overflow-x-auto"><code class="block whitespace-pre text-white${languageClass}">${formattedCode}</code></pre>`;
+			return `<pre class="bg-[#272829] px-4  pt-8 rounded-[16px] overflow-x-auto">
+<code class="block whitespace-pre text-white m-0 p-0 font-mono  leading-0 ${languageClass}">${formattedCode}</code>
+</pre>`;
 		});
+
+		// Also handle any unwrapped code blocks
+		html = html.replace(/```([a-zA-Z0-9]*)\n([\s\S]*?)```/g, (_, language, code) => {
+			const languageClass = language ? ` language-${language}` : '';
+			const formattedCode = code.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+			return `<pre class="bg-[#272829] px-4 pt-8 rounded-[16px] overflow-x-auto">
+<code class="block whitespace-pre text-white m-0 p-0 font-mono  leading-0 ${languageClass}">${formattedCode}</code>
+</pre>`;
+		});
+
+		return html;
 	}
 
 	function processLists(html: string): string {
