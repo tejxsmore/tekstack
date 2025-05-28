@@ -139,6 +139,7 @@
 						id="title"
 						name="title"
 						required
+						minlength="10"
 						placeholder="Astro JS in 2025"
 						class="rounded-[12px] border border-[#393E46] bg-[#191919] p-3 text-sm ring-[#393E46] focus:ring focus:outline-none"
 					/>
@@ -160,6 +161,7 @@
 						name="content"
 						rows="15"
 						required
+						minlength="100"
 						bind:value={markdown}
 						class="resize-none rounded-[12px] border border-[#393E46] bg-[#191919] p-3 text-sm ring-[#393E46] focus:ring focus:outline-none"
 					></textarea>

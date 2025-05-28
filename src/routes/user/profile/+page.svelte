@@ -1,8 +1,7 @@
 <script lang="ts">
 	const data = $props();
-	const { user, author } = data.data;
+	const { user, author, saved } = data.data;
 
-	import { onDestroy } from 'svelte';
 	import { X, Edit, Trash } from '@lucide/svelte';
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
@@ -144,6 +143,21 @@
 			{/if}
 		</div>
 
+		{#if saved}
+			<div class="space-y-6">
+				<h2>Saved posts</h2>
+				<div class="flex gap-6 overflow-x-auto">
+					{#each saved as save}
+						<div
+							class=" min-w-[260px] rounded-[16px] border border-[#393E46] bg-[#212121] p-6 sm:min-w-sm"
+						>
+							<a href={`/blog/${save.postSlug}`}>{save.postTitle}</a>
+						</div>
+					{/each}
+				</div>
+			</div>
+		{/if}
+
 		{#if deleteDialog && selectedPost}
 			<div
 				class="fixed inset-0 z-50 flex min-h-screen items-center justify-center bg-[#1a1a19] p-6"
@@ -258,6 +272,7 @@
 							id="title"
 							name="title"
 							required
+							minlength="10"
 							bind:value={selectedPost.title}
 							class="rounded-[12px] border border-[#393E46] bg-[#191919] p-3 text-sm ring-[#393E46] focus:ring focus:outline-none"
 						/>
@@ -280,6 +295,7 @@
 							id="content"
 							rows="10"
 							required
+							minlength="100"
 							bind:value={selectedPost.content}
 							class="resize-none rounded-[12px] border border-[#393E46] bg-[#191919] p-3 text-sm ring-[#393E46] focus:ring focus:outline-none"
 						></textarea>

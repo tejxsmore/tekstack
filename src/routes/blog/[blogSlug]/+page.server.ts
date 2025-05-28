@@ -1,7 +1,11 @@
 import type { PageServerLoad } from '../$types';
 import { env } from '$env/dynamic/private';
+import { db } from '$lib/db';
+import { like, save } from '$lib/db/schema';
+import { eq } from 'drizzle-orm';
 
 interface Post {
+	id: string;
 	title: string;
 	slug: string;
 	tag: {
@@ -26,6 +30,7 @@ export const load: PageServerLoad = async ({ fetch, params }) => {
 			query: `
                 query getPost($slug: String!) {
                     posts(where: { slug: $slug }) {
+						id
                         title
                         slug
                         tag {
@@ -51,7 +56,12 @@ export const load: PageServerLoad = async ({ fetch, params }) => {
 	const json = await response.json();
 	const post: Post | undefined = json.data?.posts?.[0];
 
+	const liked = await db.select().from(like).where(eq(like.postId, post?.id));
+	const saved = await db.select().from(save).where(eq(save.postId, post?.id));
+
 	return {
-		post
+		post,
+		liked,
+		saved
 	};
 };

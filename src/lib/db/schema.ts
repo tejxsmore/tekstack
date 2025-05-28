@@ -55,3 +55,42 @@ export const verification = pgTable('verification', {
 	createdAt: timestamp('created_at').$defaultFn(() => /* @__PURE__ */ new Date()),
 	updatedAt: timestamp('updated_at').$defaultFn(() => /* @__PURE__ */ new Date())
 });
+
+export const like = pgTable('like', {
+	id: text('id').primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	postId: text('post_id').notNull(),
+	createdAt: timestamp('created_at')
+		.$defaultFn(() => /* @__PURE__ */ new Date())
+		.notNull()
+});
+
+export const comment = pgTable('comment', {
+	id: text('id').primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	postId: text('post_id').notNull(),
+	parentCommentId: text('parent_comment_id').references((): any => comment.id, {
+		onDelete: 'cascade'
+	}),
+	content: text('content').notNull(),
+	createdAt: timestamp('created_at')
+		.$defaultFn(() => /* @__PURE__ */ new Date())
+		.notNull()
+});
+
+export const save = pgTable('save', {
+	id: text('id').primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	postId: text('post_id').notNull(),
+	postTitle: text('post_title').notNull(),
+	postSlug: text('post_slug').notNull(),
+	savedAt: timestamp('saved_at')
+		.$defaultFn(() => /* @__PURE__ */ new Date())
+		.notNull()
+});

@@ -3,6 +3,9 @@ import type { PageServerLoad } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import type { Actions } from '@sveltejs/kit';
+import { db } from '$lib/db';
+import { eq } from 'drizzle-orm';
+import { save } from '$lib/db/schema';
 
 interface Author {
 	id: string;
@@ -75,10 +78,13 @@ export const load: PageServerLoad = async ({ request }) => {
 		(a: Author) => a.email === session.user.email
 	);
 
+	const saved = await db.select().from(save).where(eq(save.userId, session?.user.id));
+
 	return {
 		session,
 		user: session?.user || null,
-		author
+		author,
+		saved
 	};
 };
 
