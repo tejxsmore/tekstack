@@ -1,6 +1,7 @@
 <script lang="ts">
 	const data = $props();
-	const { user, author, saved } = data.data;
+	const { user, author } = data.data;
+	let { saved } = $state(data.data);
 
 	import { X, Edit, Trash } from '@lucide/svelte';
 	import { enhance } from '$app/forms';
@@ -143,14 +144,12 @@
 			{/if}
 		</div>
 
-		{#if saved}
+		{#if saved.length >= 1}
 			<div class="space-y-6">
 				<h2>Saved posts</h2>
 				<div class="flex gap-6 overflow-x-auto">
 					{#each saved as save}
-						<div
-							class=" min-w-[260px] rounded-[16px] border border-[#393E46] bg-[#212121] p-6 sm:min-w-sm"
-						>
+						<div class="w-[260px] rounded-[16px] border border-[#393E46] bg-[#212121] p-6 sm:w-sm">
 							<a href={`/blog/${save.postSlug}`}>{save.postTitle}</a>
 						</div>
 					{/each}
@@ -229,6 +228,17 @@
 								}
 								return post;
 							});
+
+							saved = saved.map((save: any) => {
+								if (save.postSlug === selectedPost?.slug) {
+									return {
+										...save,
+										postTitle: selectedPost?.title,
+										postSlug: newSlug
+									};
+								}
+								return save;
+							});
 						}
 						editDialog = false;
 						tagString = '';
@@ -277,6 +287,7 @@
 							class="rounded-[12px] border border-[#393E46] bg-[#191919] p-3 text-sm ring-[#393E46] focus:ring focus:outline-none"
 						/>
 					</div>
+
 					<div class="flex flex-col">
 						<label for="tags" class="pb-0.5">Tags (comma seperated)</label>
 						<input

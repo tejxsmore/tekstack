@@ -5,7 +5,7 @@ import { env } from '$env/dynamic/private';
 import type { Actions } from '@sveltejs/kit';
 import { db } from '$lib/db';
 import { eq } from 'drizzle-orm';
-import { save } from '$lib/db/schema';
+import { like, save } from '$lib/db/schema';
 
 interface Author {
 	id: string;
@@ -168,6 +168,14 @@ export const actions: Actions = {
 					variables: { id: postId }
 				})
 			});
+
+			// 4. Also delete any saved or liked references in DB
+			try {
+				await db.delete(save).where(eq(save.postId, postId));
+				await db.delete(like).where(eq(like.postId, postId));
+			} catch (error) {
+				console.error(`Failed to delete likes/saves for postId ${postId}:`, error);
+			}
 		} catch (err) {
 			console.error('Error deleting post:', err);
 			return fail(500, { message: 'Internal server error' });
@@ -625,6 +633,17 @@ export const actions: Actions = {
 					tags: rawTags,
 					details: updateData.errors
 				});
+			}
+
+			if (newSlug !== oldSlug) {
+				try {
+					await db
+						.update(save)
+						.set({ postSlug: newSlug, postTitle: title })
+						.where(eq(save.postSlug, oldSlug));
+				} catch (error) {
+					console.error('Neon DB update error:', error);
+				}
 			}
 		} catch (error: any) {
 			console.error('Edit API route error:', error);

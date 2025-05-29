@@ -67,8 +67,22 @@ export const like = pgTable('like', {
 		.notNull()
 });
 
+export const save = pgTable('save', {
+	id: text('id').primaryKey(),
+	userId: text('user_id')
+		.notNull()
+		.references(() => user.id, { onDelete: 'cascade' }),
+	postId: text('post_id').notNull(),
+	postTitle: text('post_title').notNull(),
+	postSlug: text('post_slug').notNull(),
+	savedAt: timestamp('saved_at')
+		.$defaultFn(() => /* @__PURE__ */ new Date())
+		.notNull()
+});
+
 export const comment = pgTable('comment', {
 	id: text('id').primaryKey(),
+	userFullName: text('user_full_name').notNull(),
 	userId: text('user_id')
 		.notNull()
 		.references(() => user.id, { onDelete: 'cascade' }),
@@ -82,15 +96,21 @@ export const comment = pgTable('comment', {
 		.notNull()
 });
 
-export const save = pgTable('save', {
+export const review = pgTable('review', {
 	id: text('id').primaryKey(),
+	userFullName: text('user_full_name').notNull(),
 	userId: text('user_id')
 		.notNull()
 		.references(() => user.id, { onDelete: 'cascade' }),
-	postId: text('post_id').notNull(),
-	postTitle: text('post_title').notNull(),
-	postSlug: text('post_slug').notNull(),
-	savedAt: timestamp('saved_at')
+
+	toolId: text('tool_id').notNull(),
+
+	rating: integer('rating').notNull(),
+
+	title: text('title').notNull(),
+	content: text('content').notNull(),
+
+	createdAt: timestamp('created_at')
 		.$defaultFn(() => /* @__PURE__ */ new Date())
 		.notNull()
 });

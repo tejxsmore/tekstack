@@ -1,7 +1,11 @@
 import type { PageServerLoad } from './$types';
 import { env } from '$env/dynamic/private';
+import { db } from '$lib/db';
+import { eq } from 'drizzle-orm';
+import { review } from '$lib/db/schema';
 
 interface Tool {
+	id: string;
 	name: string;
 	slug: string;
 	logo: {
@@ -26,6 +30,7 @@ export const load: PageServerLoad = async ({ fetch, params }) => {
 			query: `
                 query getTool($slug: String!) {
                     tools(where: { slug: $slug }) {
+						id
                         name
                         slug
                         logo{
@@ -51,7 +56,10 @@ export const load: PageServerLoad = async ({ fetch, params }) => {
 	const json = await response.json();
 	const tool: Tool = json.data?.tools?.[0];
 
+	const reviews = await db.select().from(review).where(eq(review.toolId, tool?.id));
+
 	return {
-		tool
+		tool,
+		reviews
 	};
 };

@@ -1,8 +1,40 @@
 <script lang="ts">
 	const { data } = $props();
-	const { tool } = data;
+	const { tool, reviews } = data;
 
 	import MarkdownParser from '$lib/components/MarkdownParser.svelte';
+
+	let addReview = $state(false);
+
+	function formatDate(isoDate: string): string {
+		try {
+			const date = new Date(isoDate);
+			if (isNaN(date.getTime())) return 'Invalid date';
+
+			const months = [
+				'January',
+				'February',
+				'March',
+				'April',
+				'May',
+				'June',
+				'July',
+				'August',
+				'September',
+				'October',
+				'November',
+				'December'
+			];
+
+			const day = String(date.getDate()).padStart(2, '0');
+			const month = months[date.getMonth()];
+			const year = date.getFullYear();
+
+			return `${day} ${month}, ${year}`;
+		} catch {
+			return 'Invalid date';
+		}
+	}
 </script>
 
 <svelte:head>
@@ -42,8 +74,36 @@
 			<p>{tool.description}</p>
 		</div>
 
-		<div class="pt-6">
+		<div class="py-6">
 			<MarkdownParser content={tool.features} />
 		</div>
+
+		<div class="flex items-center justify-between">
+			<h2 class="text-2xl font-bold">Reviews</h2>
+		</div>
+
+		{#if reviews.length > 0}
+			<div class="divide-y divide-[#212121]">
+				{#each reviews as review}
+					<div class="space-y-6 py-8">
+						<div class="flex items-center gap-3">
+							<div
+								class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[#272829] font-bold text-[#393E46]"
+							>
+								{review.userFullName?.charAt(0)}
+							</div>
+							<h4 class="font-semibold">{review.userFullName}</h4>
+							<p class="text-xs text-gray-400">{formatDate(review.createdAt.toISOString())}</p>
+						</div>
+						<div class="space-y-3">
+							<h1 class="text-2xl font-semibold">{review.title}</h1>
+							<p class="">{review.content}</p>
+						</div>
+					</div>
+				{/each}
+			</div>
+		{:else}
+			<p class="text-gray-500">Be the first one to review this tool</p>
+		{/if}
 	</div>
 </div>

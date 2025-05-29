@@ -1,7 +1,7 @@
 import type { PageServerLoad } from '../$types';
 import { env } from '$env/dynamic/private';
 import { db } from '$lib/db';
-import { like, save } from '$lib/db/schema';
+import { like, save, comment } from '$lib/db/schema';
 import { eq } from 'drizzle-orm';
 
 interface Post {
@@ -56,12 +56,18 @@ export const load: PageServerLoad = async ({ fetch, params }) => {
 	const json = await response.json();
 	const post: Post | undefined = json.data?.posts?.[0];
 
-	const liked = await db.select().from(like).where(eq(like.postId, post?.id));
-	const saved = await db.select().from(save).where(eq(save.postId, post?.id));
+	const likes = await db.select().from(like).where(eq(like.postId, post?.id));
+	const saves = await db.select().from(save).where(eq(save.postId, post?.id));
+	const comments = await db
+		.select()
+		.from(comment)
+		.where(eq(comment.postId, post?.id))
+		.orderBy(comment.createdAt);
 
 	return {
 		post,
-		liked,
-		saved
+		likes,
+		saves,
+		comments
 	};
 };
