@@ -18,6 +18,10 @@ interface Tool {
 		name: string;
 		slug: string;
 	};
+	toolType: {
+		title: string;
+		slug: string;
+	};
 }
 
 export const load: PageServerLoad = async ({ fetch, params }) => {
@@ -43,6 +47,10 @@ export const load: PageServerLoad = async ({ fetch, params }) => {
                             name
 							slug
                         }
+						toolType{
+							title
+							slug
+						}
                     }
                 }
             `,

@@ -1,10 +1,47 @@
 <script lang="ts">
 	const { data } = $props();
 	const { tool, reviews } = data;
+	let title = $state('');
+	let content = $state('');
 
 	import MarkdownParser from '$lib/components/MarkdownParser.svelte';
 
+	const handleReview = async (event: Event) => {
+		event.preventDefault();
+
+		if (!title.trim() || !content.trim()) return;
+
+		isLoading = true;
+
+		try {
+			const response = await fetch('/api/actions/review', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					title: title.trim(),
+					content: content.trim(),
+					toolId: tool.id
+				})
+			});
+
+			if (response.ok) {
+				title = '';
+				content = '';
+				window.location.reload();
+			} else {
+				console.error('Failed to submit comment:', await response.text());
+			}
+		} catch (error) {
+			console.error(error);
+		} finally {
+			isLoading = false;
+		}
+	};
+
 	let addReview = $state(false);
+	let isLoading = $state(false);
 
 	function formatDate(isoDate: string): string {
 		try {
@@ -80,7 +117,76 @@
 
 		<div class="flex items-center justify-between">
 			<h2 class="text-2xl font-bold">Reviews</h2>
+			<button
+				onclick={() => (addReview = !addReview)}
+				class="cursor-pointer rounded-[8px] border px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-50
+				{addReview
+					? 'border-[#AF3E3E] bg-[#D84040] hover:bg-[#BF3131]'
+					: 'border-[#4E71FF] bg-[#3A59D1] hover:bg-[#362FD9]'}
+				">{addReview ? 'Close Review' : 'Add Review'}</button
+			>
 		</div>
+
+		{#if addReview}
+			<form
+				onsubmit={handleReview}
+				class="w-full space-y-6 rounded-[16px] border border-[#393E46] bg-[#212121] p-6"
+			>
+				<div class="flex flex-col space-y-0.5">
+					<label for="title">Title</label>
+					<input
+						type="text"
+						name="title"
+						bind:value={title}
+						required
+						class="rounded-[12px] border border-[#393E46] bg-[#191919] p-3 text-sm ring-[#393E46] focus:ring focus:outline-none"
+					/>
+				</div>
+				<div class="flex flex-col space-y-0.5">
+					<label for="content">Content</label>
+					<textarea
+						name="content"
+						id="content"
+						bind:value={content}
+						required
+						rows="5"
+						class="resize-none rounded-[12px] border border-[#393E46] bg-[#191919] p-3 text-sm ring-[#393E46] focus:ring focus:outline-none"
+					></textarea>
+				</div>
+				<button
+					type="submit"
+					disabled={isLoading}
+					class="w-full cursor-pointer rounded-[16px] border-[#4E71FF] bg-[#3A59D1] p-3 font-medium text-white transition-colors duration-200 hover:bg-[#362FD9] disabled:cursor-not-allowed disabled:bg-blue-800"
+				>
+					{#if isLoading}
+						<span class="flex items-center justify-center">
+							<svg
+								class="mr-2 -ml-1 h-4 w-4 animate-spin text-white"
+								fill="none"
+								viewBox="0 0 24 24"
+							>
+								<circle
+									class="opacity-25"
+									cx="12"
+									cy="12"
+									r="10"
+									stroke="currentColor"
+									stroke-width="4"
+								></circle>
+								<path
+									class="opacity-75"
+									fill="currentColor"
+									d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+								></path>
+							</svg>
+							Submitting...
+						</span>
+					{:else}
+						Submit
+					{/if}
+				</button>
+			</form>
+		{/if}
 
 		{#if reviews.length > 0}
 			<div class="divide-y divide-[#212121]">

@@ -13,6 +13,10 @@ interface Tool {
 		name: string;
 		slug: string;
 	};
+	toolType: {
+		title: string;
+		slug: string;
+	};
 	platform: {
 		name: string;
 		slug: string;
@@ -47,6 +51,10 @@ export const load: PageServerLoad = async ({ fetch }) => {
                         name
                         slug
                     }
+					toolType{
+						title
+						slug
+					}
                     platform {
                         name
                         slug
@@ -69,9 +77,13 @@ export const load: PageServerLoad = async ({ fetch }) => {
 
 	const response = await fetch(env.HYGRAPH_API, query);
 	const json = await response.json();
-	const tools: Tool[] = json.data.tools;
+	const allTools: Tool[] = json.data.tools;
 	const categories: Category[] = json.data.categories;
 	const platforms: Platform[] = json.data.platforms;
+
+	const sponsoredTools = allTools.filter((tool) => tool.toolType.slug === 'sponsored');
+	const otherTools = allTools.filter((tool) => tool.toolType.slug !== 'sponsored');
+	const tools = [...sponsoredTools, ...otherTools];
 
 	return {
 		tools,

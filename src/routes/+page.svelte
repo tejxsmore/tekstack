@@ -105,7 +105,7 @@
 </svelte:head>
 
 <div class="space-y-6 p-6">
-	<div class="mx-auto space-y-10 pt-10 pb-30 md:max-w-2xl md:pt-0">
+	<div class="mx-auto space-y-10 py-15 md:max-w-2xl md:pt-0">
 		<div class="text-center">
 			<h1 class="text-3xl leading-tight font-extrabold md:text-5xl lg:text-6xl">
 				Cut through the noise, <br />
@@ -121,7 +121,7 @@
 				type="text"
 				placeholder="Search tools"
 				bind:value={searchQuery}
-				class="w-full rounded-[16px] border border-[#393E46] bg-[#272829] p-3 ring-[#393E46] outline-none focus:ring-2 focus:outline-none"
+				class="w-full rounded-[16px] border border-[#393E46] bg-[#272829] p-3 ring-[#393E46] focus:ring-2 focus:outline-none"
 			/>
 			<button
 				onclick={() => (filter = !filter)}
@@ -188,6 +188,10 @@
 			</div>
 		</div>
 	{/if}
+
+	<div class="flex justify-end text-sm text-gray-600">
+		<p>Found {filteredTools.length} tools</p>
+	</div>
 
 	<div class="grid-cols grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 		{#each filteredTools as tool (tool.slug)}

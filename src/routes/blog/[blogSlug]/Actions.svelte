@@ -19,6 +19,13 @@
 	let showShareTooltip = $state(false);
 	let urlCopied = $state(false);
 
+	// Track if user just clicked to prevent tooltip on hover after click
+	let justClicked = $state({
+		like: false,
+		save: false,
+		share: false
+	});
+
 	$effect(() => {
 		if ($userStore && Array.isArray(likes)) {
 			isLiked = likes.some((like) => like.userId === $userStore.id);
@@ -34,6 +41,15 @@
 	});
 
 	const handleLike = async () => {
+		// Set click flag and hide tooltip immediately
+		justClicked.like = true;
+		showLikeTooltip = false;
+
+		// Reset click flag after a short delay
+		setTimeout(() => {
+			justClicked.like = false;
+		}, 300);
+
 		if (!$userStore) {
 			modal = true;
 			return;
@@ -60,6 +76,15 @@
 	};
 
 	const handleSave = async () => {
+		// Set click flag and hide tooltip immediately
+		justClicked.save = true;
+		showSaveTooltip = false;
+
+		// Reset click flag after a short delay
+		setTimeout(() => {
+			justClicked.save = false;
+		}, 300);
+
 		if (!$userStore) {
 			modal = true;
 			return;
@@ -85,6 +110,15 @@
 	};
 
 	const handleShare = async () => {
+		// Set click flag and hide tooltip immediately
+		justClicked.share = true;
+		showShareTooltip = false;
+
+		// Reset click flag after a short delay
+		setTimeout(() => {
+			justClicked.share = false;
+		}, 300);
+
 		try {
 			const currentUrl = window.location.href;
 			await navigator.clipboard.writeText(currentUrl);
@@ -102,20 +136,25 @@
 		}
 	};
 
-	// Fixed: Show tooltips for all users, not just signed out users
 	const handleTooltipEnter = (tooltip: string) => {
 		switch (tooltip) {
 			case 'like':
-				showLikeTooltip = true;
+				if (!justClicked.like) {
+					showLikeTooltip = true;
+				}
 				break;
 			case 'comment':
 				showCommentTooltip = true;
 				break;
 			case 'save':
-				showSaveTooltip = true;
+				if (!justClicked.save) {
+					showSaveTooltip = true;
+				}
 				break;
 			case 'share':
-				if (!urlCopied) showShareTooltip = true;
+				if (!urlCopied && !justClicked.share) {
+					showShareTooltip = true;
+				}
 				break;
 		}
 	};

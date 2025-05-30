@@ -149,7 +149,9 @@
 				<h2>Saved posts</h2>
 				<div class="flex gap-6 overflow-x-auto">
 					{#each saved as save}
-						<div class="w-[260px] rounded-[16px] border border-[#393E46] bg-[#212121] p-6 sm:w-sm">
+						<div
+							class="w-full max-w-[260px] rounded-[16px] border border-[#393E46] bg-[#212121] p-6 sm:max-w-sm"
+						>
 							<a href={`/blog/${save.postSlug}`}>{save.postTitle}</a>
 						</div>
 					{/each}

@@ -104,13 +104,22 @@ export const review = pgTable('review', {
 		.references(() => user.id, { onDelete: 'cascade' }),
 
 	toolId: text('tool_id').notNull(),
-
-	rating: integer('rating').notNull(),
-
 	title: text('title').notNull(),
 	content: text('content').notNull(),
 
 	createdAt: timestamp('created_at')
 		.$defaultFn(() => /* @__PURE__ */ new Date())
 		.notNull()
+});
+
+export const newsletter = pgTable('newsletter', {
+	id: text('id').primaryKey(),
+	email: text('email').notNull().unique(),
+	subscribed: boolean('subscribed')
+		.$defaultFn(() => true)
+		.notNull(),
+	subscribedAt: timestamp('subscribed_at')
+		.$defaultFn(() => /* @__PURE__ */ new Date())
+		.notNull(),
+	unsubscribedAt: timestamp('unsubscribed_at')
 });
