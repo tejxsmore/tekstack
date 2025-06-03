@@ -109,7 +109,7 @@
 	<h1 class="text-center text-3xl font-bold">All Blogs</h1>
 
 	<!-- Search Bar -->
-	<div class="relative mx-auto w-full py-6 sm:max-w-lg">
+	<div class="relative mx-auto mb-10 w-full py-6 sm:max-w-lg">
 		<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
 			<svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
@@ -151,7 +151,7 @@
 
 	<!-- Search Results Info -->
 	{#if searchTerm}
-		<p class="mb-4 text-sm text-gray-600">
+		<p class="mb-4 text-sm text-gray-400">
 			Found {filteredPosts.length} result{filteredPosts.length !== 1 ? 's' : ''} for "{searchTerm}"
 		</p>
 	{/if}
@@ -159,12 +159,12 @@
 	<!-- Pagination Info -->
 	{#if filteredPosts.length > 0}
 		<div class="mb-6 flex items-center justify-between">
-			<p class="text-sm text-gray-600">
+			<p class="text-sm text-gray-400">
 				Showing {startIndex + 1}-{Math.min(endIndex, filteredPosts.length)} of {filteredPosts.length}
 				blogs
 			</p>
 			{#if totalPages > 1}
-				<p class="text-sm text-gray-600">
+				<p class="text-sm text-gray-400">
 					Page {currentPage} of {totalPages}
 				</p>
 			{/if}

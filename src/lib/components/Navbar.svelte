@@ -71,7 +71,7 @@
 <svelte:document onkeydown={handleKeydown} />
 
 <div class="relative">
-	<div class="flex items-center justify-between p-6">
+	<div class="flex items-center justify-between p-6 {menu ? 'bg-[#212121]' : ''}">
 		<div class="flex items-end gap-3 sm:gap-12">
 			<a href="/" class="text-4xl font-bold">TEKSTACK</a>
 			<a href="/blog" class="hidden text-2xl font-semibold md:block">Blog</a>
@@ -161,24 +161,10 @@
 			<div class="space-y-3 p-3">
 				<a
 					href="/blog"
-					class="block rounded-[12px] p-3 text-lg font-medium"
+					class="block rounded-[12px] p-3 text-lg font-medium md:hidden"
 					onclick={() => (menu = false)}
 				>
 					Blogs
-				</a>
-				<a
-					href="/tool/best"
-					class="block rounded-[12px] p-3 text-lg font-medium transition-colors hover:border-[#393E46]"
-					onclick={() => (menu = false)}
-				>
-					Best tools
-				</a>
-				<a
-					href="/newsletter"
-					class="block rounded-[12px] p-3 text-lg font-medium transition-colors hover:border-[#393E46]"
-					onclick={() => (menu = false)}
-				>
-					Newsletter
 				</a>
 				{#if $userStore}
 					<a

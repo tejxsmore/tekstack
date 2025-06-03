@@ -189,7 +189,7 @@
 				<MarkdownParser content={post.content} />
 			</div>
 
-			<div id="comments" class="space-y-6">
+			<div id="comments" class="space-y-6 py-6">
 				<form onsubmit={handleComment} class="flex gap-3 rounded-[16px]">
 					<input
 						type="text"

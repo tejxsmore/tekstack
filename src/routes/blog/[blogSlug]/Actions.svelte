@@ -3,6 +3,9 @@
 	import { userStore } from '$lib/stores/user';
 
 	const { post, likes, saves, comments } = $props();
+	import { onMount, onDestroy } from 'svelte';
+
+	let modalRef = $state<HTMLElement | null>(null);
 
 	let isLiked = $state(false);
 	let likeCount = $state(Array.isArray(likes) ? likes.length : 0);
@@ -175,6 +178,30 @@
 				break;
 		}
 	};
+
+	$effect(() => {
+		if (!modal) return;
+
+		function handleClickOutside(event: MouseEvent) {
+			if (modalRef && !modalRef.contains(event.target as Node)) {
+				modal = false;
+			}
+		}
+
+		function handleEscape(event: KeyboardEvent) {
+			if (event.key === 'Escape') {
+				modal = false;
+			}
+		}
+
+		document.addEventListener('mousedown', handleClickOutside);
+		document.addEventListener('keydown', handleEscape);
+
+		onDestroy(() => {
+			document.removeEventListener('mousedown', handleClickOutside);
+			document.removeEventListener('keydown', handleEscape);
+		});
+	});
 </script>
 
 <div class="fixed bottom-10 left-1/2 z-30 -translate-x-1/2 transform">
@@ -323,8 +350,9 @@
 </div>
 
 {#if modal}
-	<div class="fixed inset-0 z-50 flex min-h-screen items-center justify-center bg-[#1a1a19] p-6">
+	<div class="fixed inset-0 z-50 flex min-h-screen items-center justify-center bg-[#1a1a19]/90 p-6">
 		<div
+			bind:this={modalRef}
 			class="w-full space-y-6 rounded-[16px] border border-[#393E46] bg-[#212121] p-6 sm:max-w-md"
 		>
 			<div class="flex items-center justify-between">
@@ -332,7 +360,7 @@
 				<button
 					type="button"
 					onclick={() => (modal = false)}
-					class="cursor-pointer rounded-[12px] border border-[#393E46] bg-[#272829] p-2 delay-100 hover:text-[#D84040]"
+					class="cursor-pointer rounded-[12px] bg-[#272829] p-2 delay-100 hover:text-[#D84040]"
 				>
 					<X size="20" />
 				</button>

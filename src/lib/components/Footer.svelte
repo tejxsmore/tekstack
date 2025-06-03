@@ -34,17 +34,8 @@
 	const currentYear = new Date().getFullYear();
 
 	const navigationLinks = {
-		tools: [
-			{ name: 'All Tools', href: '/' },
-			{ name: 'Categories', href: '/tool/categories' },
-			{ name: "Editor's choice", href: '/tool/editors-choice' },
-			{ name: 'Sponsored', href: '/tool/sponsored' }
-		],
-		blog: [
-			{ name: 'All Blogs', href: '/blog' },
-			{ name: 'Tutorial', href: '/blog/tutorial' },
-			{ name: 'Tags', href: '/blog/tag' }
-		],
+		tools: [{ name: 'All Tools', href: '/' }],
+		blog: [{ name: 'All Blogs', href: '/blog' }],
 		company: [
 			{ name: 'About Us', href: '/about' },
 			{ name: 'Careers', href: '/careers' }
@@ -52,7 +43,7 @@
 		support: [
 			{ name: 'Help Center', href: '/help' },
 			{ name: 'Submit Software', href: '/tool/submit' },
-			{ name: 'Advertise', href: '/tool/advertise' }
+			{ name: 'Advertise', href: '/tool/submit' }
 		]
 	};
 </script>

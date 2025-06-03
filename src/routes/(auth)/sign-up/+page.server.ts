@@ -15,7 +15,6 @@ export const actions = {
 		const fullName = `${firstName} ${lastName}`;
 
 		try {
-			// Sign up and automatically sign in (asResponse returns raw response)
 			const response = await auth.api.signUpEmail({
 				body: {
 					name: fullName,
@@ -25,20 +24,21 @@ export const actions = {
 				asResponse: true
 			});
 
-			switch (response.statusText) {
-				case 'UNPROCESSABLE_ENTITY':
+			switch (response.status) {
+				case 422:
 					return fail(422, {
 						errorMessage: 'User already exists. Use Sign In or Social Sign In'
 					});
-				case 'BAD_REQUEST':
+				case 400:
 					return fail(400, { errorMessage: 'Invalid email format or request.' });
 			}
 
-			// Handle cookies from the response
-			const setCookieHeaders =
-				response.headers.getSetCookie?.() ||
-				response.headers.get('set-cookie')?.split(/,(?=\s*[^=]+=[^;]+)/) ||
-				[];
+			const rawSetCookie = response.headers.get('set-cookie');
+			if (!rawSetCookie) {
+				console.warn('No Set-Cookie header received from signup response.');
+			}
+
+			const setCookieHeaders = rawSetCookie ? rawSetCookie.split(/,(?=\s*[^=]+=[^;]+)/) : [];
 
 			for (const cookieHeader of setCookieHeaders) {
 				const [nameValue, ...attributes] = cookieHeader.trim().split(';');
@@ -95,6 +95,6 @@ export const actions = {
 			return fail(500, { errorMessage: `Authentication failed: ${message}` });
 		}
 
-		redirect(302, '/');
+		return redirect(302, '/');
 	}
 } satisfies Actions;

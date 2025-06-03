@@ -19,7 +19,7 @@
 			<div class="flex items-start">
 				{#if tool.toolType.slug === 'sponsored'}
 					<span
-						class="inline-flex items-center gap-1.5 rounded-[8px] border border-[#7D6B2A] bg-[#4A3C1A] px-3 py-1.5 text-xs font-medium text-[#E4D4A3]"
+						class="inline-flex items-center gap-1.5 rounded-[8px] border border-[#FFB433]/30 bg-[#F3C623]/40 px-3 py-1.5 text-xs font-medium text-[#E4D4A3]"
 					>
 						<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
 							<path
@@ -30,7 +30,7 @@
 					</span>
 				{:else if tool.toolType.slug === 'editors-choice'}
 					<span
-						class="inline-flex items-center gap-1.5 rounded-[8px] border border-[#5B4A7D] bg-[#332A4A] px-3 py-1.5 text-xs font-medium text-[#C7B8E4]"
+						class="inline-flex items-center gap-1.5 rounded-[8px] border border-[#4D4C7D] bg-[#4D4C7D]/70 px-3 py-1.5 text-xs font-medium text-[#C7B8E4]"
 					>
 						<svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
 							<path

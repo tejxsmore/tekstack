@@ -7,12 +7,39 @@
 	import { enhance } from '$app/forms';
 	import { goto } from '$app/navigation';
 	import { userStore } from '$lib/stores/user';
+	import { onDestroy } from 'svelte';
+
+	let deleteDialogRef = $state<HTMLElement | null>(null);
+	let editDialogRef = $state<HTMLElement | null>(null);
 
 	$effect(() => {
 		if ($userStore == null) {
 			console.log("Sign In to access '/user/profile' ");
 			goto('/');
 		}
+
+		function handleClickOutside(event: MouseEvent) {
+			if (deleteDialog && deleteDialogRef && !deleteDialogRef.contains(event.target as Node)) {
+				cancelDialog();
+			}
+			if (editDialog && editDialogRef && !editDialogRef.contains(event.target as Node)) {
+				cancelDialog();
+			}
+		}
+
+		function handleEscape(event: KeyboardEvent) {
+			if (event.key === 'Escape') {
+				cancelDialog();
+			}
+		}
+
+		document.addEventListener('mousedown', handleClickOutside);
+		document.addEventListener('keydown', handleEscape);
+
+		onDestroy(() => {
+			document.removeEventListener('mousedown', handleClickOutside);
+			document.removeEventListener('keydown', handleEscape);
+		});
 	});
 
 	interface Post {
@@ -75,18 +102,21 @@
 	<title>{author.name || user.name}</title>
 </svelte:head>
 
-<div class="space-y-6 p-6">
+<div class="min-h-screen space-y-6 p-6">
 	{#if !author}
 		<div>
 			<h1 class="text-2xl font-bold">{user.name}</h1>
 			<h2>{user.email}</h2>
 		</div>
 	{:else}
-		<div class="space-y-3">
-			<h1 class="text-4xl font-semibold">{author.name}</h1>
-			<h2>{author.email}</h2>
-			<h3>{author.title}</h3>
-			<p>{author.bio}</p>
+		<div class="">
+			<div class="flex gap-6">
+				<div class="h-20 w-20 rounded-full bg-[#393E46]"></div>
+				<div class="space-y-3">
+					<h1 class="text-4xl font-semibold">{author.name}</h1>
+					<h3>{author.title}</h3>
+				</div>
+			</div>
 		</div>
 
 		<div>
@@ -114,9 +144,7 @@
 						class="divide-y divide-[#393E46] overflow-hidden rounded-[20px] border border-[#393E46]"
 					>
 						{#each posts as post, i (post.slug)}
-							<div
-								class="flex items-center justify-between gap-5 bg-[#212121] p-3 px-6 transition hover:bg-[#272829]"
-							>
+							<div class="flex items-center justify-between gap-5 bg-[#212121] p-3 px-6 transition">
 								<a href={`/blog/${post.slug}`} class="flex gap-3">
 									<p>{i + 1}.</p>
 									<p class="line-clamp-1">{post.title}</p>
@@ -125,14 +153,14 @@
 									<button
 										type="submit"
 										onclick={() => handleEdit(post)}
-										class="cursor-pointer rounded-[12px] border border-[#393E46] bg-[#272829] p-2 delay-100 hover:text-[#D84040]"
+										class="cursor-pointer rounded-[12px] bg-[#272829] p-2 hover:text-[#D84040] focus:outline-none"
 									>
 										<Edit size="16" />
 									</button>
 									<button
 										type="submit"
 										onclick={() => handleDelete(post)}
-										class="cursor-pointer rounded-[12px] border border-[#393E46] bg-[#272829] p-2 delay-100 hover:text-[#D84040]"
+										class="cursor-pointer rounded-[12px] bg-[#272829] p-2 hover:text-[#D84040] focus:outline-none"
 									>
 										<Trash size="16" />
 									</button>
@@ -161,11 +189,12 @@
 
 		{#if deleteDialog && selectedPost}
 			<div
-				class="fixed inset-0 z-50 flex min-h-screen items-center justify-center bg-[#1a1a19] p-6"
+				class="fixed inset-0 z-50 flex min-h-screen items-center justify-center bg-[#1a1a19]/90 p-6"
 			>
 				<form
 					method="post"
 					action="?/delete"
+					bind:this={deleteDialogRef}
 					use:enhance={() => {
 						posts = posts.filter((p: any) => p.slug !== selectedPost?.slug);
 						deleteDialog = false;
@@ -184,7 +213,7 @@
 						<button
 							type="button"
 							onclick={cancelDialog}
-							class="cursor-pointer rounded-[12px] border border-[#393E46] bg-[#272829] p-2 delay-100 hover:text-[#D84040]"
+							class="cursor-pointer rounded-[12px] bg-[#272829] p-2 delay-100 hover:text-[#D84040]"
 							><X size="20" /></button
 						>
 					</div>
@@ -211,11 +240,12 @@
 
 		{#if editDialog && selectedPost}
 			<div
-				class="fixed inset-0 z-50 flex min-h-screen items-center justify-center bg-[#1a1a19] p-6"
+				class="fixed inset-0 z-50 flex min-h-screen items-center justify-center bg-[#1a1a19]/90 p-6"
 			>
 				<form
 					method="post"
 					action="?/edit"
+					bind:this={editDialogRef}
 					use:enhance={() => {
 						if (selectedPost?.title !== originalTitle) {
 							const newSlug = slugify(selectedPost?.title!);
@@ -272,7 +302,7 @@
 						<button
 							type="button"
 							onclick={cancelDialog}
-							class="cursor-pointer rounded-[12px] border border-[#393E46] bg-[#272829] p-2 delay-100 hover:text-[#D84040]"
+							class="cursor-pointer rounded-[12px] bg-[#272829] p-2 delay-100 hover:text-[#D84040]"
 							><X size="20" /></button
 						>
 					</div>

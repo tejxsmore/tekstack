@@ -5,6 +5,7 @@
 	let content = $state('');
 
 	import MarkdownParser from '$lib/components/MarkdownParser.svelte';
+	import { userStore } from '$lib/stores/user';
 
 	const handleReview = async (event: Event) => {
 		event.preventDefault();
@@ -42,6 +43,7 @@
 
 	let addReview = $state(false);
 	let isLoading = $state(false);
+	let showTooltip = $state(false);
 
 	function formatDate(isoDate: string): string {
 		try {
@@ -117,17 +119,35 @@
 
 		<div class="flex items-center justify-between">
 			<h2 class="text-2xl font-bold">Reviews</h2>
-			<button
-				onclick={() => (addReview = !addReview)}
-				class="cursor-pointer rounded-[8px] border px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-50
-				{addReview
-					? 'border-[#AF3E3E] bg-[#D84040] hover:bg-[#BF3131]'
-					: 'border-[#4E71FF] bg-[#3A59D1] hover:bg-[#362FD9]'}
-				">{addReview ? 'Close Review' : 'Add Review'}</button
-			>
+			<div class="relative">
+				<button
+					onclick={() => $userStore && (addReview = !addReview)}
+					disabled={!$userStore}
+					onmouseenter={() => {
+						if (!$userStore) showTooltip = true;
+					}}
+					onmouseleave={() => (showTooltip = false)}
+					class="cursor-pointer rounded-[8px] border px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-50
+					{addReview
+						? 'border-[#AF3E3E] bg-[#D84040] hover:bg-[#BF3131]'
+						: 'border-[#4E71FF] bg-[#3A59D1] hover:bg-[#362FD9]'}
+					{!$userStore ? 'hover:cursor-not-allowed' : ''}
+					">{addReview ? 'Close Review' : 'Add Review'}</button
+				>
+
+				{#if showTooltip && !$userStore}
+					<div class="absolute bottom-full left-1/2 mb-2 -translate-x-1/2 transform">
+						<div
+							class="rounded-[8px] border border-[#393E46] bg-[#272829] px-3 py-1.5 text-xs whitespace-nowrap text-white shadow-lg"
+						>
+							Sign In
+						</div>
+					</div>
+				{/if}
+			</div>
 		</div>
 
-		{#if addReview}
+		{#if addReview && $userStore}
 			<form
 				onsubmit={handleReview}
 				class="w-full space-y-6 rounded-[16px] border border-[#393E46] bg-[#212121] p-6"
@@ -189,7 +209,7 @@
 		{/if}
 
 		{#if reviews.length > 0}
-			<div class="divide-y divide-[#212121]">
+			<div class="divide-y divide-[#212121] pb-12">
 				{#each reviews as review}
 					<div class="space-y-6 py-8">
 						<div class="flex items-center gap-3">
@@ -209,7 +229,7 @@
 				{/each}
 			</div>
 		{:else}
-			<p class="text-gray-500">Be the first one to review this tool</p>
+			<p class="pb-12 text-gray-500">Be the first one to review this tool</p>
 		{/if}
 	</div>
 </div>

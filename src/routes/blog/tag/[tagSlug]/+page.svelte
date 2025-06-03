@@ -83,12 +83,12 @@
 	<!-- Pagination Info -->
 	{#if tag.post.length > 0}
 		<div class="mb-6 flex items-center justify-between">
-			<p class="text-sm text-gray-600">
+			<p class="text-sm text-gray-400">
 				Showing {startIndex + 1}-{Math.min(endIndex, tag.post.length)} of {tag.post.length}
 				blogs
 			</p>
 			{#if totalPages > 1}
-				<p class="text-sm text-gray-600">
+				<p class="text-sm text-gray-400">
 					Page {currentPage} of {totalPages}
 				</p>
 			{/if}

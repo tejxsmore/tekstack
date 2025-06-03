@@ -14,7 +14,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	const { title, content, toolId } = await request.json();
 
 	if (!title || !content || !toolId) {
-		return new Response('Missing postId or comment', { status: 400 });
+		return new Response('Missing title, content or toolId', { status: 400 });
 	}
 
 	const userId = session.user.id;
@@ -31,9 +31,9 @@ export const POST: RequestHandler = async ({ request }) => {
 			createdAt: new Date()
 		});
 
-		return new Response('Comment created successfully', { status: 201 });
+		return new Response('Review created successful', { status: 201 });
 	} catch (error) {
-		console.error('Error creating comment:', error);
-		return new Response('Failed to create comment', { status: 500 });
+		console.error('Error creating review:', error);
+		return new Response('Failed to create review', { status: 500 });
 	}
 };

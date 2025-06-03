@@ -2,43 +2,41 @@ import type { Actions } from './$types';
 import { auth } from '$lib/auth';
 import { APIError } from 'better-auth/api';
 import { fail, redirect } from '@sveltejs/kit';
-import { buildErrorMessage } from 'vite';
 
 export const actions = {
 	default: async ({ request, cookies }) => {
 		const formData = await request.formData();
-
 		const email = formData.get('email') as string;
 		const password = formData.get('password') as string;
 
 		try {
 			const response = await auth.api.signInEmail({
-				body: {
-					email,
-					password
-				},
+				body: { email, password },
 				asResponse: true
 			});
 
-			switch (response.statusText) {
-				case 'UNAUTHORIZED':
+			// Handle known API error codes
+			switch (response.status) {
+				case 401:
 					return fail(401, { errorMessage: 'User not found or wrong credentials.' });
-				case 'BAD_REQUEST':
+				case 400:
 					return fail(400, { errorMessage: 'Invalid email format or request.' });
 			}
 
-			// Better cookie parsing - handles multiple Set-Cookie headers
-			const setCookieHeaders =
-				response.headers.getSetCookie?.() ||
-				response.headers.get('set-cookie')?.split(/,(?=\s*[^=]+=[^;]+)/) ||
-				[];
+			// Read Set-Cookie header
+			const rawSetCookie = response.headers.get('set-cookie');
+			if (!rawSetCookie) {
+				console.warn('No Set-Cookie header received from auth server.');
+			}
+
+			// Handle multiple Set-Cookie headers split by comma not inside value
+			const setCookieHeaders = rawSetCookie ? rawSetCookie.split(/,(?=\s*[^=]+=[^;]+)/) : [];
 
 			for (const cookieHeader of setCookieHeaders) {
 				const [nameValue, ...attributes] = cookieHeader.trim().split(';');
 				const [name, value] = nameValue.split('=');
 
 				if (name && value) {
-					// Parse cookie attributes
 					const cookieOptions: any = {
 						path: '/',
 						httpOnly: true,
@@ -46,7 +44,6 @@ export const actions = {
 						sameSite: 'lax'
 					};
 
-					// Override with actual attributes from the cookie
 					for (const attr of attributes) {
 						const [key, val] = attr.trim().split('=');
 						const lowerKey = key.toLowerCase();
@@ -90,6 +87,6 @@ export const actions = {
 			return fail(500, { errorMessage: `Authentication failed: ${message}` });
 		}
 
-		redirect(302, '/');
+		return redirect(302, '/');
 	}
 } satisfies Actions;
